@@ -1,0 +1,33 @@
+Total Encounters = DISTINCTCOUNT(FactEncounters[encounter_id])
+
+Admissions = COUNTROWS(FactEncounters)
+
+Discharges =
+CALCULATE(
+    COUNTROWS(FactEncounters),
+    NOT ISBLANK(FactEncounters[discharge_datetime])
+)
+
+Average Length of Stay (Days) =
+AVERAGEX(
+    FactEncounters,
+    DIVIDE(
+        DATEDIFF(FactEncounters[admission_datetime], FactEncounters[discharge_datetime], HOUR),
+        24
+    )
+)
+
+Readmission Flag Rate % =
+DIVIDE(
+    SUM(FactEncounters[readmission_flag_30d]),
+    COUNTROWS(FactEncounters)
+)
+
+Average Discharge Turnaround (Hours) =
+AVERAGEX(
+    FactEncounters,
+    DIVIDE(
+        DATEDIFF(FactEncounters[discharge_order_datetime], FactEncounters[discharge_datetime], MINUTE),
+        60
+    )
+)
