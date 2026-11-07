@@ -1,24 +1,9 @@
-"""Run basic data-quality checks on generated hospital CSVs."""
+"""Validate generated hospital CSV files."""
 from pathlib import Path
 import pandas as pd
-
-DATA = Path(__file__).resolve().parents[1] / "data"
-patients = pd.read_csv(DATA / "patients.csv")
-departments = pd.read_csv(DATA / "departments.csv")
-encounters = pd.read_csv(DATA / "encounters.csv", parse_dates=["admission_datetime","discharge_datetime","discharge_order_datetime"])
-
-checks = {
-    "patient_id unique": patients.patient_id.is_unique,
-    "department_id unique": departments.department_id.is_unique,
-    "encounter_id unique": encounters.encounter_id.is_unique,
-    "patient foreign keys valid": encounters.patient_id.isin(patients.patient_id).all(),
-    "department foreign keys valid": encounters.department_id.isin(departments.department_id).all(),
-    "admission before discharge": (encounters.admission_datetime <= encounters.discharge_datetime).all(),
-    "discharge order not after discharge": (encounters.discharge_order_datetime <= encounters.discharge_datetime).all(),
-    "no missing encounter fields": not encounters.isna().any().any(),
-}
-for label, passed in checks.items():
-    print(f"{'PASS' if passed else 'FAIL'} | {label}")
-if not all(checks.values()):
-    raise SystemExit("Data-quality checks failed.")
-print("All checks passed.")
+D=Path(__file__).resolve().parents[1]/"data"
+p=pd.read_csv(D/"patients.csv"); d=pd.read_csv(D/"departments.csv")
+e=pd.read_csv(D/"encounters.csv",parse_dates=["admission_datetime","discharge_datetime","discharge_order_datetime"])
+checks={"patient IDs unique":p.patient_id.is_unique,"department IDs unique":d.department_id.is_unique,"encounter IDs unique":e.encounter_id.is_unique,"patient foreign keys valid":e.patient_id.isin(p.patient_id).all(),"department foreign keys valid":e.department_id.isin(d.department_id).all(),"admission <= discharge":(e.admission_datetime<=e.discharge_datetime).all(),"order <= discharge":(e.discharge_order_datetime<=e.discharge_datetime).all(),"no missing encounter values":not e.isna().any().any()}
+for k,v in checks.items(): print(("PASS" if v else "FAIL")+" | "+k)
+if not all(checks.values()): raise SystemExit("Validation failed")
